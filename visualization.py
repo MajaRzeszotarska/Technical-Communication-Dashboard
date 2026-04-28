@@ -25,33 +25,35 @@ COUNTRY_NAMES = {
     'UY': 'Uruguay', 'VE': 'Venezuela', 'VN': 'Vietnam', 'ZA': 'South Africa',
 }
 
-@st.cache_data
-def load_data():
-    df = pd.read_excel('Final_data_combined.xlsx')
-    # Build single-country lookup
-    countries_a = df[['Country_A', 'Music_Mood_A', 'Valence_A', 'Energy_A', 'Danceability_A',
-                       'Financial_Stress_A', 'Cost_of_living_A', 'Local_Purchasing_Power_A']].copy()
-    countries_a.columns = ['Code', 'Music_Mood', 'Valence', 'Energy', 'Danceability',
-                           'Financial_Stress', 'Cost_of_Living', 'Purchasing_Power']
-    countries_b = df[['Country_B', 'Music_Mood_B', 'Valence_B', 'Energy_B', 'Danceability_B',
-                       'Financial_Stress_B', 'Cost_of_living_B', 'Local_Purchasing_Power_B']].copy()
-    countries_b.columns = ['Code', 'Music_Mood', 'Valence', 'Energy', 'Danceability',
-                           'Financial_Stress', 'Cost_of_Living', 'Purchasing_Power']
-    country_df = pd.concat([countries_a, countries_b]).drop_duplicates('Code').reset_index(drop=True)
-    country_df['Name'] = country_df['Code'].map(COUNTRY_NAMES).fillna(country_df['Code'])
-    return df, country_df
-
-df, country_df = load_data()
-
-# Convert 2-letter to 3-letter ISO codes
 import pycountry
+
 def to_iso3(code):
     try:
         return pycountry.countries.get(alpha_2=code).alpha_3
     except:
         return None
 
-country_df['Code3'] = country_df['Code'].apply(to_iso3)
+@st.cache_data
+def load_data():
+    df = pd.read_excel('Final_data_combined.xlsx')
+    country_df = pd.read_excel('final_final_dataset_RQ2_single_countries.xlsx')
+    
+    country_df = country_df.rename(columns={
+        'Country Code': 'Code',
+        'Average_Valence': 'Valence',
+        'Average_Energy': 'Energy',
+        'Average_Danceability': 'Danceability',
+        'Financial Stress': 'Financial_Stress',
+        'Cost of Living': 'Cost_of_Living',
+        'Local Purchasing Power': 'Purchasing_Power',
+        'Music Mood': 'Music_Mood'
+    })
+    
+    country_df['Name'] = country_df['Code'].map(COUNTRY_NAMES).fillna(country_df['Code'])
+    country_df['Code3'] = country_df['Code'].apply(to_iso3)
+    return df, country_df
+
+df, country_df = load_data()
 
 def get_pairs_for_country(code):
     mask_a = df['Country_A'] == code
@@ -64,16 +66,13 @@ def get_pairs_for_country(code):
 
 # ─── HEADER ───────────────────────────────────────────────────────────────────
 st.title("🎵 Music Preferences & Social Connectedness")
-st.markdown("**Bachelor Thesis Dashboard** — Exploring how Facebook social ties and economic conditions relate to national music taste across 70 countries.")
-
+st.markdown("**Technical Communication Dashboard** — Exploring how Facebook social ties and economic conditions relate to national music taste across 70 countries.")
 with st.expander("📖 What do the metrics mean?"):
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.markdown("**🎶 Music Distance**\nEuclidean distance in valence–energy–danceability space. **Lower = more similar music.** Range: 0–0.4+")
-    with col2:
-        st.markdown("**🔀 Jaccard Similarity**\nFraction of Top 50 songs shared between two countries. **Higher = more songs in common.** Range: 0–1")
-    with col3:
-        st.markdown("**🌐 SCI (Social Connectedness)**\nNormalized Facebook friendship index. **Higher = more social ties.** Range: 0.2–0.65")
+    st.markdown("**🎶 Music Distance**\nEuclidean (similarity) distance in valence–energy-danceability space. **Lower = more similar music.**")
+    st.markdown("**🔀 Jaccard Similarity**\nNumber of Top 50 songs shared between two countries. **Higher = more songs in common.**")
+    st.markdown("**🌐👥 SCI (Social Connectedness)**\nNormalized Facebook friendship index. **Higher = more social ties.**")
+    st.markdown("**😔🎵 Mood-congruency theory**\nIt claims that people listen to music matching their current emotional state. It assumes that in countries with **high financial stress**, people listen to more **melancholic and lower-energy music**.")
+    st.markdown("**🎧✨ Mood-regulation theory**\nIt claims that people listen to music to escape their moo. It assumes that in countries with **high financial stress**, people listen to more **energetic and uplifting music** to escape their problems and everyday stress**.")
 
 st.divider()
 
@@ -173,26 +172,40 @@ with tab2:
     col_left, col_right = st.columns(2)
 
     with col_left:
-        st.markdown("#### 🎶 Most similar music (lowest Music Distance)")
+        st.markdown("#### 🎶❤️ Most similar music (lowest Music Distance)")
         top_similar = pairs.nsmallest(10, 'Music_Distance')[['Other_Name', 'Music_Distance', 'Jaccard_Similarity_Songs', 'SCI_Score_normalized']]
-        top_similar.columns = ['Country', 'Music Distance ↓', 'Jaccard Songs', 'SCI Normalized']
+        top_similar.columns = ['Country', 'Music Distance ↓', 'Jaccard', 'SCI']
         top_similar = top_similar.reset_index(drop=True)
         top_similar.index += 1
-        st.dataframe(
-            top_similar.style.format({'Music Distance ↓': '{:.4f}', 'Jaccard Songs': '{:.4f}', 'SCI Normalized': '{:.3f}'}),
-            use_container_width=True
-        )
+        st.dataframe(top_similar.style.format({'Music Distance ↓': '{:.4f}', 'Jaccard': '{:.4f}', 'SCI': '{:.3f}'}), use_container_width=True)
 
     with col_right:
-        st.markdown("#### 🔀 Most song overlap (highest Jaccard)")
+        st.markdown("#### 🎶❌ Least similar music (highest Music Distance)")
+        top_dissimilar = pairs.nlargest(10, 'Music_Distance')[['Other_Name', 'Music_Distance', 'Jaccard_Similarity_Songs', 'SCI_Score_normalized']]
+        top_dissimilar.columns = ['Country', 'Music Distance ↑', 'Jaccard', 'SCI']
+        top_dissimilar = top_dissimilar.reset_index(drop=True)
+        top_dissimilar.index += 1
+        st.dataframe(top_dissimilar.style.format({'Music Distance ↑': '{:.4f}', 'Jaccard': '{:.4f}', 'SCI': '{:.3f}'}), use_container_width=True)
+
+    st.divider()
+
+    col_left2, col_right2 = st.columns(2)
+
+    with col_left2:
+        st.markdown("#### 🔀❤️ Most song overlap (highest Jaccard)")
         top_jaccard = pairs.nlargest(10, 'Jaccard_Similarity_Songs')[['Other_Name', 'Jaccard_Similarity_Songs', 'Music_Distance', 'SCI_Score_normalized']]
-        top_jaccard.columns = ['Country', 'Jaccard Songs ↑', 'Music Distance', 'SCI Normalized']
+        top_jaccard.columns = ['Country', 'Jaccard ↑', 'Music Distance', 'SCI']
         top_jaccard = top_jaccard.reset_index(drop=True)
         top_jaccard.index += 1
-        st.dataframe(
-            top_jaccard.style.format({'Jaccard Songs ↑': '{:.4f}', 'Music Distance': '{:.4f}', 'SCI Normalized': '{:.3f}'}),
-            use_container_width=True
-        )
+        st.dataframe(top_jaccard.style.format({'Jaccard ↑': '{:.4f}', 'Music Distance': '{:.4f}', 'SCI': '{:.3f}'}), use_container_width=True)
+
+    with col_right2:
+        st.markdown("#### 🔀❌ Least song overlap (lowest Jaccard)")
+        top_jaccard_low = pairs.nsmallest(10, 'Jaccard_Similarity_Songs')[['Other_Name', 'Jaccard_Similarity_Songs', 'Music_Distance', 'SCI_Score_normalized']]
+        top_jaccard_low.columns = ['Country', 'Jaccard ↓', 'Music Distance', 'SCI']
+        top_jaccard_low = top_jaccard_low.reset_index(drop=True)
+        top_jaccard_low.index += 1
+        st.dataframe(top_jaccard_low.style.format({'Jaccard ↓': '{:.4f}', 'Music Distance': '{:.4f}', 'SCI': '{:.3f}'}), use_container_width=True)
 
     st.divider()
 
@@ -216,59 +229,96 @@ with tab2:
         metric_col = 'Music_Distance'
         label_text = '🎶 Top 10 Music Distance'
 
-    top10_codes = top10_data['Other'].tolist()
-    
-    # Build Map DataFrame
+    # Merge metric values onto map_df
     map_df = country_df.copy()
-    map_df['Group'] = map_df['Code'].apply(
-        lambda x: '🎯 Selected' if x == selected_code
-        else (label_text if x in top10_codes else '⬜ Other')
+    map_df = map_df.merge(
+        pairs[['Other', metric_col]].rename(columns={'Other': 'Code'}),
+        on='Code', how='left'
     )
-    
-    # Color definition
-    color_map = {'🎯 Selected': '#e74c3c', label_text: '#3498db', '⬜ Other': '#ecf0f1'}
+
+    # For Music Distance: lower = more similar, so invert for intuitive coloring
+    if metric_col == 'Music_Distance':
+        color_scale = 'Blues_r'  # dark = most similar (low distance)
+        hover_label = 'Music Distance'
+    else:
+        color_scale = 'Blues'    # dark = most overlap (high jaccard)
+        hover_label = 'Jaccard Similarity'
 
     fig_highlight = px.choropleth(
-        map_df,
+        map_df[map_df['Code'] != selected_code],  # plot others with scale
         locations="Code3",
         locationmode="ISO-3",
-        color="Group",
+        color=metric_col,
         hover_name="Name",
-        hover_data={"Code3": False, "Group": False},
-        color_discrete_map=color_map,
-        title=f"{COUNTRY_NAMES.get(selected_code, selected_code)}: {label_text}"
+        hover_data={"Code3": False, metric_col: ":.4f"},
+        color_continuous_scale=color_scale,
+        labels={metric_col: hover_label},
+        title=f"{COUNTRY_NAMES.get(selected_code, selected_code)}: {hover_label}"
     )
 
-    # Apply BIGGER size and clean margins
+    # Overlay selected country in red
+    selected_row = map_df[map_df['Code'] == selected_code]
+    fig_highlight.add_trace(go.Choropleth(
+        locations=selected_row['Code3'],
+        z=[1],
+        colorscale=[[0, '#e74c3c'], [1, '#e74c3c']],
+        showscale=False,
+        hovertemplate=f"<b>{COUNTRY_NAMES.get(selected_code, selected_code)}</b><br>Selected<extra></extra>"
+    ))
+
     fig_highlight.update_layout(
-        height=750, 
+        height=750,
         margin=dict(l=0, r=0, t=50, b=0),
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+        coloraxis_colorbar=dict(title=hover_label)
     )
-    
+
     st.plotly_chart(fig_highlight, use_container_width=True)
 
     st.divider()
 
     # Scatter: all pairs for this country
-    st.markdown("#### 📉 SCI vs Music Distance for all pairs with this country")
-    pairs['Other_Name_Full'] = pairs['Other'].map(COUNTRY_NAMES).fillna(pairs['Other'])
-    fig_scatter = px.scatter(
-        pairs,
-        x='SCI_Score_normalized',
-        y='Music_Distance',
-        hover_name='Other_Name_Full',
-        color='Jaccard_Similarity_Songs',
-        color_continuous_scale='Blues',
-        labels={
-            'SCI_Score_normalized': 'Normalized SCI Score',
-            'Music_Distance': 'Music Distance',
-            'Jaccard_Similarity_Songs': 'Jaccard'
-        },
-        title=f"All pairs: {COUNTRY_NAMES.get(selected_code, selected_code)}"
-    )
-    fig_scatter.update_layout(height=400)
-    st.plotly_chart(fig_scatter, use_container_width=True)
+    col_s1, col_s2 = st.columns(2)
+
+    with col_s1:
+        st.markdown("#### 🌐👥 SCI vs 🎶 Music Distance")
+        pairs['Other_Name_Full'] = pairs['Other'].map(COUNTRY_NAMES).fillna(pairs['Other'])
+        fig_scatter = px.scatter(
+            pairs,
+            x='SCI_Score_normalized',
+            y='Music_Distance',
+            hover_name='Other_Name_Full',
+            color='Jaccard_Similarity_Songs',
+            color_continuous_scale='Blues',
+            labels={
+                'SCI_Score_normalized': 'Normalized SCI Score',
+                'Music_Distance': 'Music Distance',
+                'Jaccard_Similarity_Songs': 'Jaccard'
+            },
+            title=f"All pairs: {COUNTRY_NAMES.get(selected_code, selected_code)}"
+        )
+        fig_scatter.update_layout(height=400)
+        st.plotly_chart(fig_scatter, use_container_width=True)
+        st.caption("Lower Music Distance with higher SCI (line from top left side to low right side) = more similar music taste between socially connected countries")
+
+    with col_s2:
+        st.markdown("#### 🌐👥SCI vs 🔀 Jaccard Similarity")
+        fig_scatter2 = px.scatter(
+            pairs,
+            x='SCI_Score_normalized',
+            y='Jaccard_Similarity_Songs',
+            hover_name='Other_Name_Full',
+            color='Music_Distance',
+            color_continuous_scale='Reds_r',
+            labels={
+                'SCI_Score_normalized': 'Normalized SCI Score',
+                'Jaccard_Similarity_Songs': 'Jaccard Similarity',
+                'Music_Distance': 'Music Distance'
+            },
+            title=f"All pairs: {COUNTRY_NAMES.get(selected_code, selected_code)}"
+        )
+        fig_scatter2.update_layout(height=400)
+        st.plotly_chart(fig_scatter2, use_container_width=True)
+        st.caption("Higher Jaccard with higher SCI (line from bottom left side to top right side) = more songs in common between socially connected countries")
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 3 — CORRELATIONS
 # ══════════════════════════════════════════════════════════════════════════════
@@ -278,7 +328,7 @@ with tab3:
     col1, col2 = st.columns(2)
 
     with col1:
-        st.markdown("#### SCI vs Music Distance (all 2,415 pairs)")
+        st.markdown("#### 🌐👥 SCI vs 🎶 Music Distance (all 2,415 pairs)")
         fig1 = px.scatter(
             df, x='SCI_Score_normalized', y='Music_Distance',
             opacity=0.4,
@@ -288,10 +338,10 @@ with tab3:
         )
         fig1.update_layout(height=380)
         st.plotly_chart(fig1, use_container_width=True)
-        st.caption("r = -0.33: stronger social ties → more similar music")
+        st.caption("r = -0.33: stronger social ties → more similar music, weak/moderate negative relation, meaning that the more socially related countries are, the more similar music they listen to")
 
     with col2:
-        st.markdown("#### SCI vs Jaccard Similarity (all 2,415 pairs)")
+        st.markdown("#### 🌐👥 SCI vs 🔀 Jaccard Similarity (all 2,415 pairs)")
         fig2 = px.scatter(
             df, x='SCI_Score_normalized', y='Jaccard_Similarity_Songs',
             opacity=0.4,
@@ -301,10 +351,10 @@ with tab3:
         )
         fig2.update_layout(height=380)
         st.plotly_chart(fig2, use_container_width=True)
-        st.caption("r = 0.54: stronger social ties → more songs in common")
+        st.caption("r = 0.54: stronger social ties → more songs in common - moderate positive relation, meaning that the more socially related countries are, the more similar music they listen to")
 
     st.divider()
-    st.markdown("#### Financial Stress vs Music Mood (70 countries)")
+    st.markdown("#### 💸 Financial Stress vs 🎵 Music Mood (70 countries)")
     fig3 = px.scatter(
         country_df, x='Financial_Stress', y='Music_Mood',
         hover_name='Name', trendline='ols',
@@ -313,7 +363,7 @@ with tab3:
     )
     fig3.update_layout(height=400)
     st.plotly_chart(fig3, use_container_width=True)
-    st.caption("r = 0.24 (p = 0.043): very weak positive — neither mood-congruency nor mood-regulation clearly supported")
+    st.caption("r = 0.24 (p = 0.043): very weak positive - neither mood-congruency nor mood-regulation clearly supported")
 
 st.divider()
-st.caption("Data: Facebook SCI (Meta AI) · Spotify Top 50 (Kaggle) · Cost of Living (Numbeo) | Bachelor Thesis — Maja Rzeszotarska")
+st.caption("Data: Facebook SCI (Meta AI) · Spotify Top 50 (Kaggle) · Cost of Living (Numbeo) | Technical Communication — Maja Rzeszotarska")
