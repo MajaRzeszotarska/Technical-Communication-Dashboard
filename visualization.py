@@ -66,7 +66,7 @@ def get_pairs_for_country(code):
 
 # ─── HEADER ───────────────────────────────────────────────────────────────────
 st.title("🎵 Music Preferences & Social Connectedness")
-st.markdown("**Technical Communication Dashboard** — Exploring how Facebook social ties and economic conditions relate to national music taste across 70 countries.")
+st.markdown("**Technical Communication Dashboard** - Exploring how Facebook social ties and economic conditions relate to national music taste across 70 countries.")
 with st.expander("📖 What do the metrics mean?"):
     st.markdown("**🎶 Music Distance**\nsays how much the vibe of music differs (based on energy, happiness and danceability). **Lower = more similar music.**")
     st.markdown("**🔀 Jaccard Similarity**\nis the number of top 50 songs shared between two countries. **Higher = more songs in common.**")
@@ -302,7 +302,7 @@ with tab2:
         )
         fig_scatter.update_layout(height=400)
         st.plotly_chart(fig_scatter, use_container_width=True)
-        st.caption("Lower Music Distance (music vibe similarity) with higher SCI (dots densly going from top left side to low right side) = more similar music taste between socially connected countries")
+        st.caption("Lower Music Distance (music vibe similarity) with higher SCI (dots densely going from top left side to low right side) = more similar music taste between socially connected countries")
 
     with col_s2:
         st.markdown("#### 👥SCI vs 🔀 Jaccard Similarity")
@@ -321,7 +321,7 @@ with tab2:
         )
         fig_scatter2.update_layout(height=400)
         st.plotly_chart(fig_scatter2, use_container_width=True)
-        st.caption("Higher Jaccard similarity (\% \of shared songs) with higher SCI (dots densly going from bottom left side to top right side) = more songs in common between socially connected countries")
+        st.caption("Higher Jaccard similarity (\% of shared songs) with higher SCI (dots densely going from bottom left side to top right side) = more songs in common between socially connected countries")
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 3 — CORRELATIONS
 # ══════════════════════════════════════════════════════════════════════════════
@@ -366,7 +366,6 @@ with tab3:
     )
     fig3.update_layout(height=400)
     st.plotly_chart(fig3, use_container_width=True)
-    st.caption("r = 0.24 (p = 0.043): very weak positive - neither mood-congruency nor mood-regulation clearly supported")
-
+    st.caption("r = 0.24 (p = 0.043): very weak positive relationship, with 4% probability that this is only a random relation, based on that we can say that financial stress is a little more consistent withthe mood-regulation theory, but it is not enough to claim any of the individual psychological theories were supported at national level.")
 st.divider()
-st.caption("Data: Facebook SCI (Meta AI) · Spotify Top 50 (Kaggle) · Cost of Living (Numbeo) | Technical Communication — Maja Rzeszotarska")
+st.caption("Data: Facebook SCI (Meta AI) · Spotify Top 50 (Kaggle) · Cost of Living (Numbeo) | Technical Communication - Maja Rzeszotarska")
