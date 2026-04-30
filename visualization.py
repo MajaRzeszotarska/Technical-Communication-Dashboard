@@ -182,7 +182,7 @@ with tab2:
     col_left, col_right = st.columns(2)
 
     with col_left:
-        st.markdown("#### 🎶❤️ Most similar music (lowest Music Distance)")
+        st.markdown("#### 🎶 Most similar music (lowest Music Distance)")
         top_similar = pairs.nsmallest(10, 'Music_Distance')[['Other_Name', 'Music_Distance', 'Jaccard_Similarity_Songs', 'SCI_Score_normalized']]
         top_similar.columns = ['Country', 'Music Distance ↓', 'Jaccard', 'SCI']
         top_similar = top_similar.reset_index(drop=True)
@@ -190,7 +190,7 @@ with tab2:
         st.dataframe(top_similar.style.format({'Music Distance ↓': '{:.4f}', 'Jaccard': '{:.4f}', 'SCI': '{:.3f}'}), use_container_width=True)
 
     with col_right:
-        st.markdown("#### 🎶❌ Least similar music (highest Music Distance)")
+        st.markdown("#### Least similar music (highest Music Distance)")
         top_dissimilar = pairs.nlargest(10, 'Music_Distance')[['Other_Name', 'Music_Distance', 'Jaccard_Similarity_Songs', 'SCI_Score_normalized']]
         top_dissimilar.columns = ['Country', 'Music Distance ↑', 'Jaccard', 'SCI']
         top_dissimilar = top_dissimilar.reset_index(drop=True)
@@ -202,7 +202,7 @@ with tab2:
     col_left2, col_right2 = st.columns(2)
 
     with col_left2:
-        st.markdown("#### 🔀❤️ Most song overlap (highest Jaccard)")
+        st.markdown("#### 🔀 Most song overlap (highest Jaccard)")
         top_jaccard = pairs.nlargest(10, 'Jaccard_Similarity_Songs')[['Other_Name', 'Jaccard_Similarity_Songs', 'Music_Distance', 'SCI_Score_normalized']]
         top_jaccard.columns = ['Country', 'Jaccard ↑', 'Music Distance', 'SCI']
         top_jaccard = top_jaccard.reset_index(drop=True)
@@ -210,7 +210,7 @@ with tab2:
         st.dataframe(top_jaccard.style.format({'Jaccard ↑': '{:.4f}', 'Music Distance': '{:.4f}', 'SCI': '{:.3f}'}), use_container_width=True)
 
     with col_right2:
-        st.markdown("#### 🔀❌ Least song overlap (lowest Jaccard)")
+        st.markdown("#### Least song overlap (lowest Jaccard)")
         top_jaccard_low = pairs.nsmallest(10, 'Jaccard_Similarity_Songs')[['Other_Name', 'Jaccard_Similarity_Songs', 'Music_Distance', 'SCI_Score_normalized']]
         top_jaccard_low.columns = ['Country', 'Jaccard ↓', 'Music Distance', 'SCI']
         top_jaccard_low = top_jaccard_low.reset_index(drop=True)
