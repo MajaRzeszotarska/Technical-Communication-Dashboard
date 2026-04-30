@@ -68,17 +68,22 @@ def get_pairs_for_country(code):
 st.title("🎵 Music Preferences & Social Connectedness")
 st.markdown("**Technical Communication Dashboard** — Exploring how Facebook social ties and economic conditions relate to national music taste across 70 countries.")
 with st.expander("📖 What do the metrics mean?"):
-    st.markdown("**🎶 Music Distance**\nEuclidean (similarity) distance in valence–energy-danceability space. **Lower = more similar music.**")
-    st.markdown("**🔀 Jaccard Similarity**\nNumber of Top 50 songs shared between two countries. **Higher = more songs in common.**")
-    st.markdown("**🌐👥 SCI (Social Connectedness)**\nNormalized Facebook friendship index. **Higher = more social ties.**")
-    st.markdown("**😔🎵 Mood-congruency theory**\nIt claims that people listen to music matching their current emotional state. It assumes that in countries with **high financial stress**, people listen to more **melancholic and lower-energy music**.")
-    st.markdown("**🎧✨ Mood-regulation theory**\nIt claims that people listen to music to escape their moo. It assumes that in countries with **high financial stress**, people listen to more **energetic and uplifting music** to escape their problems and everyday stress**.")
+    st.markdown("**🎶 Music Distance**\nsays how much the vibe of music differs (based on energy, happiness and danceability). **Lower = more similar music.**")
+    st.markdown("**🔀 Jaccard Similarity**\nis the number of top 50 songs shared between two countries. **Higher = more songs in common.**")
+    st.markdown("**👥 SCI (Social Connectedness)**\nsays how closely connected two countries are based on Facebook friendships. **Higher = more social ties.**")
+    st.markdown("**🎸 Music Mood**\n says how energetic, positive and danceable music is. **Higher = more energetic/happy.**")
+    st.markdown("**😔 Mood-congruency theory**\nclaims that people listen to music matching their current emotional state. It assumes that in countries with **high financial stress**, people listen to more **melancholic and lower-energy music**.")
+    st.markdown("**✨ Mood-regulation theory**\nclaims that people listen to music to escape their mood. It assumes that in countries with **high financial stress**, people listen to more **energetic and uplifting music** to escape their problems and everyday stress.")
 
 st.divider()
 
 # ─── TAB LAYOUT ───────────────────────────────────────────────────────────────
-tab1, tab2, tab3 = st.tabs(["🗺️ World Map", "🔍 Country Explorer", "📊 Correlations"])
+# Użyj tego:
+if "active_tab" not in st.session_state:
+    st.session_state.active_tab = "🔍 Country Explorer" # Ustaw domyślną na tę, na której pracujesz
 
+# To sprawi, że Streamlit nie będzie "skakał" do pierwszej zakładki
+tab1, tab2, tab3 = st.tabs(["🗺️ World Map", "🔍 Country Explorer", "📊 Correlations"])
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 1 — WORLD MAP
 # ══════════════════════════════════════════════════════════════════════════════
@@ -88,7 +93,7 @@ with tab1:
         "Color countries by:",
         ["Music_Mood", "Financial_Stress", "Valence", "Energy", "Danceability", "Cost_of_Living", "Purchasing_Power"],
         format_func=lambda x: {
-            "Music_Mood": "🎵 Music Mood (higher = more energetic/happy)",
+            "Music_Mood": "🎸 Music Mood (higher = more energetic/happy)",
             "Financial_Stress": "💸 Financial Stress (higher = more economic pressure)",
             "Valence": "😊 Valence (positivity of music)",
             "Energy": "⚡ Energy (intensity of music)",
@@ -130,17 +135,22 @@ with tab1:
         title=f"World Map: {color_labels[map_metric]}"
     )
 
-    # DODAJ TE LINIE:
+    # ZAKTUALIZOWANE USTAWIENIA WYGLĄDU:
+    fig_map.update_geos(
+        showcountries=True,
+        countrycolor="white",
+        showland=True,
+        landcolor="#E5E5E5", # Szary dla krajów bez danych
+        coastlinecolor="white"
+    )
+
     fig_map.update_layout(
-        height=700, # Zwiększa wysokość mapy (domyślnie jest to ok. 450)
-        margin={"r":0,"t":40,"l":0,"b":0} # Usuwa zbędne białe marginesy wokół mapy
+        height=700, 
+        margin={"r":0, "t":40, "l":0, "b":0} 
     )
     
-    # CRITICAL: This line was missing!
     st.plotly_chart(fig_map, use_container_width=True)
-# ══════════════════════════════════════════════════════════════════════════════
-# TAB 2 — COUNTRY EXPLORER
-# ══════════════════════════════════════════════════════════════════════════════
+
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 2 — COUNTRY EXPLORER
 # ══════════════════════════════════════════════════════════════════════════════
@@ -161,7 +171,7 @@ with tab2:
     # Country profile
     st.markdown(f"### 🌍 {COUNTRY_NAMES.get(selected_code, selected_code)}")
     c1, c2, c3, c4, c5 = st.columns(5)
-    c1.metric("🎵 Music Mood", f"{selected_country['Music_Mood']:.3f}")
+    c1.metric("🎸 Music Mood", f"{selected_country['Music_Mood']:.3f}")
     c2.metric("😊 Valence", f"{selected_country['Valence']:.3f}")
     c3.metric("⚡ Energy", f"{selected_country['Energy']:.3f}")
     c4.metric("💸 Financial Stress", f"{selected_country['Financial_Stress']:.2f}")
@@ -212,40 +222,29 @@ with tab2:
     # --- ENHANCED MAP SECTION WITH TOGGLE ---
     st.markdown(f"#### 🗺️ Map Explorer: {COUNTRY_NAMES.get(selected_code, selected_code)}")
     
-    # Selection for Map Mode
     map_mode = st.radio(
         "Highlight top 10 countries by:",
-        ["Song Overlap (Jaccard Similarity)", "Music Mood (Lowest Music Distance)"],
+        ["Music Mood (Lowest Music Distance)", "Song Overlap (Jaccard Similarity)"],
         horizontal=True
     )
 
-    # Logic for finding the Top 10 based on selection
     if "Jaccard" in map_mode:
-        top10_data = pairs.nlargest(10, 'Jaccard_Similarity_Songs')
         metric_col = 'Jaccard_Similarity_Songs'
-        label_text = '🔀 Top 10 Jaccard'
+        color_scale = 'Blues'  
+        hover_label = 'Jaccard Similarity'
     else:
-        top10_data = pairs.nsmallest(10, 'Music_Distance')
         metric_col = 'Music_Distance'
-        label_text = '🎶 Top 10 Music Distance'
+        color_scale = 'Purples_r' # Ciemna zieleń = mały dystans (podobny vibe)
+        hover_label = 'Music Distance'
 
-    # Merge metric values onto map_df
     map_df = country_df.copy()
     map_df = map_df.merge(
         pairs[['Other', metric_col]].rename(columns={'Other': 'Code'}),
         on='Code', how='left'
     )
 
-    # For Music Distance: lower = more similar, so invert for intuitive coloring
-    if metric_col == 'Music_Distance':
-        color_scale = 'Blues_r'  # dark = most similar (low distance)
-        hover_label = 'Music Distance'
-    else:
-        color_scale = 'Blues'    # dark = most overlap (high jaccard)
-        hover_label = 'Jaccard Similarity'
-
     fig_highlight = px.choropleth(
-        map_df[map_df['Code'] != selected_code],  # plot others with scale
+        map_df[map_df['Code'] != selected_code],
         locations="Code3",
         locationmode="ISO-3",
         color=metric_col,
@@ -256,7 +255,6 @@ with tab2:
         title=f"{COUNTRY_NAMES.get(selected_code, selected_code)}: {hover_label}"
     )
 
-    # Overlay selected country in red
     selected_row = map_df[map_df['Code'] == selected_code]
     fig_highlight.add_trace(go.Choropleth(
         locations=selected_row['Code3'],
@@ -266,6 +264,15 @@ with tab2:
         hovertemplate=f"<b>{COUNTRY_NAMES.get(selected_code, selected_code)}</b><br>Selected<extra></extra>"
     ))
 
+    # To ustawienie sprawi, że kraje bez danych będą jasnoszare
+    fig_highlight.update_geos(
+        showcountries=True,
+        countrycolor="white",
+        showland=True,
+        landcolor="#E5E5E5", 
+        coastlinecolor="white"
+    )
+
     fig_highlight.update_layout(
         height=750,
         margin=dict(l=0, r=0, t=50, b=0),
@@ -274,51 +281,47 @@ with tab2:
 
     st.plotly_chart(fig_highlight, use_container_width=True)
 
-    st.divider()
-
     # Scatter: all pairs for this country
     col_s1, col_s2 = st.columns(2)
 
     with col_s1:
-        st.markdown("#### 🌐👥 SCI vs 🎶 Music Distance")
+        st.markdown("#### 👥 SCI vs 🎶 Music Distance")
         pairs['Other_Name_Full'] = pairs['Other'].map(COUNTRY_NAMES).fillna(pairs['Other'])
         fig_scatter = px.scatter(
             pairs,
             x='SCI_Score_normalized',
             y='Music_Distance',
             hover_name='Other_Name_Full',
-            color='Jaccard_Similarity_Songs',
-            color_continuous_scale='Blues',
+            color='Music_Distance', # Kolor pasuje do osi Y
+            color_continuous_scale='Purples_r',
             labels={
-                'SCI_Score_normalized': 'Normalized SCI Score',
-                'Music_Distance': 'Music Distance',
-                'Jaccard_Similarity_Songs': 'Jaccard'
+                'SCI_Score_normalized': 'Social Connection Strength',
+                'Music_Distance': 'Music vibe similarity',
             },
-            title=f"All pairs: {COUNTRY_NAMES.get(selected_code, selected_code)}"
+            title=f"Music vibe similarity: {COUNTRY_NAMES.get(selected_code, selected_code)}"
         )
         fig_scatter.update_layout(height=400)
         st.plotly_chart(fig_scatter, use_container_width=True)
-        st.caption("Lower Music Distance with higher SCI (line from top left side to low right side) = more similar music taste between socially connected countries")
+        st.caption("Lower Music Distance (music vibe similarity) with higher SCI (dots densly going from top left side to low right side) = more similar music taste between socially connected countries")
 
     with col_s2:
-        st.markdown("#### 🌐👥SCI vs 🔀 Jaccard Similarity")
+        st.markdown("#### 👥SCI vs 🔀 Jaccard Similarity")
         fig_scatter2 = px.scatter(
             pairs,
             x='SCI_Score_normalized',
             y='Jaccard_Similarity_Songs',
             hover_name='Other_Name_Full',
-            color='Music_Distance',
-            color_continuous_scale='Reds_r',
+            color='Jaccard_Similarity_Songs', # Kolor pasuje do osi Y
+            color_continuous_scale='Blues',
             labels={
-                'SCI_Score_normalized': 'Normalized SCI Score',
-                'Jaccard_Similarity_Songs': 'Jaccard Similarity',
-                'Music_Distance': 'Music Distance'
+                'SCI_Score_normalized': 'Social Connection Strength',
+                'Jaccard_Similarity_Songs': '% of Shared Songs',
             },
-            title=f"All pairs: {COUNTRY_NAMES.get(selected_code, selected_code)}"
+            title=f"% of Shared Songs: {COUNTRY_NAMES.get(selected_code, selected_code)}"
         )
         fig_scatter2.update_layout(height=400)
         st.plotly_chart(fig_scatter2, use_container_width=True)
-        st.caption("Higher Jaccard with higher SCI (line from bottom left side to top right side) = more songs in common between socially connected countries")
+        st.caption("Higher Jaccard similarity (\% \of shared songs) with higher SCI (dots densly going from bottom left side to top right side) = more songs in common between socially connected countries")
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 3 — CORRELATIONS
 # ══════════════════════════════════════════════════════════════════════════════
@@ -328,33 +331,33 @@ with tab3:
     col1, col2 = st.columns(2)
 
     with col1:
-        st.markdown("#### 🌐👥 SCI vs 🎶 Music Distance (all 2,415 pairs)")
+        st.markdown("#### 👥 SCI vs 🎶 Music Distance (all 2,415 pairs)")
         fig1 = px.scatter(
             df, x='SCI_Score_normalized', y='Music_Distance',
             opacity=0.4,
             trendline='ols',
             labels={'SCI_Score_normalized': 'SCI Normalized', 'Music_Distance': 'Music Distance'},
-            color_discrete_sequence=['#3498db']
+            color_discrete_sequence=['#9b59b6']
         )
         fig1.update_layout(height=380)
         st.plotly_chart(fig1, use_container_width=True)
         st.caption("r = -0.33: stronger social ties → more similar music, weak/moderate negative relation, meaning that the more socially related countries are, the more similar music they listen to")
 
     with col2:
-        st.markdown("#### 🌐👥 SCI vs 🔀 Jaccard Similarity (all 2,415 pairs)")
+        st.markdown("#### 👥 SCI vs 🔀 Jaccard Similarity (all 2,415 pairs)")
         fig2 = px.scatter(
             df, x='SCI_Score_normalized', y='Jaccard_Similarity_Songs',
             opacity=0.4,
             trendline='ols',
             labels={'SCI_Score_normalized': 'SCI Normalized', 'Jaccard_Similarity_Songs': 'Jaccard Songs'},
-            color_discrete_sequence=['#2ecc71']
+            color_discrete_sequence=['#3498db']
         )
         fig2.update_layout(height=380)
         st.plotly_chart(fig2, use_container_width=True)
         st.caption("r = 0.54: stronger social ties → more songs in common - moderate positive relation, meaning that the more socially related countries are, the more similar music they listen to")
 
     st.divider()
-    st.markdown("#### 💸 Financial Stress vs 🎵 Music Mood (70 countries)")
+    st.markdown("#### 💸 Financial Stress vs 🎸 Music Mood (70 countries)")
     fig3 = px.scatter(
         country_df, x='Financial_Stress', y='Music_Mood',
         hover_name='Name', trendline='ols',
