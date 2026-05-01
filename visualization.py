@@ -366,6 +366,6 @@ with tab3:
     )
     fig3.update_layout(height=400)
     st.plotly_chart(fig3, use_container_width=True)
-    st.caption("r = 0.24 (p = 0.043): very weak positive relationship, with 4% probability that this is only a random relation, based on that we can say that financial stress is a little more consistent with the mood-regulation theory, but it is not enough to claim any of the individual psychological theories were supported at national level.")
+    st.caption("r = 0.24: very weak positive relationship, based on that we can say that financial stress is a little more consistent with the mood-regulation theory, but it is not enough to claim any of the individual psychological theories were supported at national level.")
 st.divider()
 st.caption("Data: Facebook SCI (Meta AI) · Spotify Top 50 (Kaggle) · Cost of Living (Numbeo) | Technical Communication - Maja Rzeszotarska")
