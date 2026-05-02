@@ -218,6 +218,24 @@ with tab2:
         st.dataframe(top_jaccard_low.style.format({'Jaccard ↓': '{:.4f}', 'Music Distance': '{:.4f}', 'SCI': '{:.3f}'}), use_container_width=True)
 
     st.divider()
+    
+    col_sci_left, col_sci_right = st.columns(2)
+
+    with col_sci_left:
+        st.markdown("#### 👥 Most socially connected (highest SCI)")
+        top_sci = pairs.nlargest(10, 'SCI_Score_normalized')[['Other_Name', 'SCI_Score_normalized', 'Music_Distance', 'Jaccard_Similarity_Songs']]
+        top_sci.columns = ['Country', 'SCI ↑', 'Music Distance', 'Jaccard']
+        top_sci = top_sci.reset_index(drop=True)
+        top_sci.index += 1
+        st.dataframe(top_sci.style.format({'SCI ↑': '{:.3f}', 'Music Distance': '{:.4f}', 'Jaccard': '{:.4f}'}), use_container_width=True)
+
+    with col_sci_right:
+        st.markdown("#### Least socially connected (lowest SCI)")
+        bot_sci = pairs.nsmallest(10, 'SCI_Score_normalized')[['Other_Name', 'SCI_Score_normalized', 'Music_Distance', 'Jaccard_Similarity_Songs']]
+        bot_sci.columns = ['Country', 'SCI ↓', 'Music Distance', 'Jaccard']
+        bot_sci = bot_sci.reset_index(drop=True)
+        bot_sci.index += 1
+        st.dataframe(bot_sci.style.format({'SCI ↓': '{:.3f}', 'Music Distance': '{:.4f}', 'Jaccard': '{:.4f}'}), use_container_width=True)
 
     # --- ENHANCED MAP SECTION WITH TOGGLE ---
     st.markdown(f"#### 🗺️ Map Explorer: {COUNTRY_NAMES.get(selected_code, selected_code)}")
