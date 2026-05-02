@@ -224,7 +224,7 @@ with tab2:
     
     map_mode = st.radio(
         "Highlight top 10 countries by:",
-        ["Music Mood (Lowest Music Distance)", "Song Overlap (Jaccard Similarity)"],
+        ["Music Mood (Lowest Music Distance)", "Song Overlap (Jaccard Similarity)", "Social Connectedness (SCI)"],
         horizontal=True
     )
 
@@ -232,9 +232,13 @@ with tab2:
         metric_col = 'Jaccard_Similarity_Songs'
         color_scale = 'Blues'  
         hover_label = 'Jaccard Similarity'
+    elif "SCI" in map_mode:
+        metric_col = 'SCI_Score_normalized'
+        color_scale = 'Mint'
+        hover_label = 'Social Connectedness'
     else:
         metric_col = 'Music_Distance'
-        color_scale = 'Purples_r' # Ciemna zieleń = mały dystans (podobny vibe)
+        color_scale = 'Purples_r'
         hover_label = 'Music Distance'
 
     map_df = country_df.copy()
