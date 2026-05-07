@@ -65,8 +65,8 @@ def get_pairs_for_country(code):
     return pairs
 
 # ─── HEADER ───────────────────────────────────────────────────────────────────
-st.title("🎵 Music Preferences & Social Connectedness")
-st.markdown("**Technical Communication Dashboard** - Exploring how Facebook social ties and economic conditions relate to national music taste across 70 countries.")
+st.title("🎵 Do connected countries listen to the same music?")
+st.markdown("Explore how social ties and economic conditions shape what 70 countries stream on Spotify - and what that tells us about culture and the global music scene.")
 with st.expander("📖 What do the metrics mean?"):
     st.markdown("**🎶 Music Distance**\nsays how much the vibe of music differs (based on energy, happiness and danceability). **Lower = more similar music.**")
     st.markdown("**🔀 Jaccard Similarity**\nis the number of top 50 songs shared between two countries. **Higher = more songs in common.**")
@@ -75,8 +75,20 @@ with st.expander("📖 What do the metrics mean?"):
     st.markdown("**😔 Mood-congruency theory**\nclaims that people listen to music matching their current emotional state. It assumes that in countries with **high financial stress**, people listen to more **melancholic and lower-energy music**.")
     st.markdown("**✨ Mood-regulation theory**\nclaims that people listen to music to escape their mood. It assumes that in countries with **high financial stress**, people listen to more **energetic and uplifting music** to escape their problems and everyday stress.")
 
-st.divider()
+with st.expander("🌍 About the data & countries"):
+    st.markdown("""
+    **What data is this based on?**
+    This dashboard uses three datasets combined into one:
+    - **Spotify Top 50** (via Kaggle): the top 50 most-streamed songs per country, with audio features like valence (happiness), energy, and danceability. Data is averaged per country across multiple snapshot dates.
+    - **Facebook Social Connectedness Index** (Meta AI Research): measures how many Facebook friendships exist between countries, normalized on a log scale so patterns are visible.
+    - **Numbeo Cost of Living**: cost of living, rent, groceries, and local purchasing power per country.
+    
+    **70 countries** are included across 6 continents: Argentina, Australia, Austria, Belarus, Belgium, Bolivia, Brazil, Bulgaria, Canada, Chile, Colombia, Costa Rica, Czech Republic, Denmark, Dominican Republic, Ecuador, Egypt, El Salvador, Estonia, Finland, France, Germany, Greece, Guatemala, Honduras, Hungary, Iceland, India, Indonesia, Ireland, Israel, Italy, Japan, Kazakhstan, Latvia, Lithuania, Luxembourg, Malaysia, Mexico, Morocco, Netherlands, New Zealand, Nigeria, Norway, Pakistan, Panama, Paraguay, Peru, Philippines, Poland, Portugal, Romania, Saudi Arabia, Singapore, Slovakia, South Africa, South Korea, Spain, Sweden, Switzerland, Taiwan, Thailand, Turkey, Ukraine, United Arab Emirates, United Kingdom, United States, Uruguay, Venezuela, Vietnam.
+    
+    **2,415 country pairs** were created from these 70 countries to compare music similarity and social ties between every possible combination.
+    """)
 
+st.divider()
 # ─── TAB LAYOUT ───────────────────────────────────────────────────────────────
 # Użyj tego:
 if "active_tab" not in st.session_state:
@@ -179,70 +191,61 @@ with tab2:
 
     st.divider()
 
+    table_mode = st.radio(
+        "Explore top 10 most & least similar countries by:",
+        ["🎶 Music vibe (Music Distance)", "🔀 Shared songs (Jaccard Similarity)", "👥 Social connection (SCI)"],
+        horizontal=True
+    )
+
     col_left, col_right = st.columns(2)
 
+    if table_mode == "🎶 Music vibe (Music Distance)":
+        sort_col = 'Music_Distance'
+        display_cols = ['Other_Name', 'Music_Distance', 'Jaccard_Similarity_Songs', 'SCI_Score_normalized']
+        col_labels = ['Country', 'Music Distance', 'Jaccard', 'SCI']
+        left_label = 'Most similar vibe'
+        right_label = 'Most different vibe'
+        best = pairs.nsmallest(10, sort_col)
+        worst = pairs.nlargest(10, sort_col)
+    elif table_mode == "🔀 Shared songs (Jaccard Similarity)":
+        sort_col = 'Jaccard_Similarity_Songs'
+        display_cols = ['Other_Name', 'Jaccard_Similarity_Songs', 'Music_Distance', 'SCI_Score_normalized']
+        col_labels = ['Country', 'Jaccard', 'Music Distance', 'SCI']
+        left_label = 'Most song overlap'
+        right_label = 'Least song overlap'
+        best = pairs.nlargest(10, sort_col)
+        worst = pairs.nsmallest(10, sort_col)
+    else:
+        sort_col = 'SCI_Score_normalized'
+        display_cols = ['Other_Name', 'SCI_Score_normalized', 'Music_Distance', 'Jaccard_Similarity_Songs']
+        col_labels = ['Country', 'SCI', 'Music Distance', 'Jaccard']
+        left_label = 'Most connected'
+        right_label = 'Least connected'
+        best = pairs.nlargest(10, sort_col)
+        worst = pairs.nsmallest(10, sort_col)
+
     with col_left:
-        st.markdown("#### 🎶 Most similar music (lowest Music Distance)")
-        top_similar = pairs.nsmallest(10, 'Music_Distance')[['Other_Name', 'Music_Distance', 'Jaccard_Similarity_Songs', 'SCI_Score_normalized']]
-        top_similar.columns = ['Country', 'Music Distance ↓', 'Jaccard', 'SCI']
-        top_similar = top_similar.reset_index(drop=True)
-        top_similar.index += 1
-        st.dataframe(top_similar.style.format({'Music Distance ↓': '{:.4f}', 'Jaccard': '{:.4f}', 'SCI': '{:.3f}'}), use_container_width=True)
+        st.markdown(f"#### {left_label}")
+        top_df = best[display_cols].copy()
+        top_df.columns = col_labels
+        top_df = top_df.reset_index(drop=True)
+        top_df.index += 1
+        st.dataframe(top_df.style.format({k: '{:.4f}' for k in col_labels[1:]}), use_container_width=True)
 
     with col_right:
-        st.markdown("#### Least similar music (highest Music Distance)")
-        top_dissimilar = pairs.nlargest(10, 'Music_Distance')[['Other_Name', 'Music_Distance', 'Jaccard_Similarity_Songs', 'SCI_Score_normalized']]
-        top_dissimilar.columns = ['Country', 'Music Distance ↑', 'Jaccard', 'SCI']
-        top_dissimilar = top_dissimilar.reset_index(drop=True)
-        top_dissimilar.index += 1
-        st.dataframe(top_dissimilar.style.format({'Music Distance ↑': '{:.4f}', 'Jaccard': '{:.4f}', 'SCI': '{:.3f}'}), use_container_width=True)
-
-    st.divider()
-
-    col_left2, col_right2 = st.columns(2)
-
-    with col_left2:
-        st.markdown("#### 🔀 Most song overlap (highest Jaccard)")
-        top_jaccard = pairs.nlargest(10, 'Jaccard_Similarity_Songs')[['Other_Name', 'Jaccard_Similarity_Songs', 'Music_Distance', 'SCI_Score_normalized']]
-        top_jaccard.columns = ['Country', 'Jaccard ↑', 'Music Distance', 'SCI']
-        top_jaccard = top_jaccard.reset_index(drop=True)
-        top_jaccard.index += 1
-        st.dataframe(top_jaccard.style.format({'Jaccard ↑': '{:.4f}', 'Music Distance': '{:.4f}', 'SCI': '{:.3f}'}), use_container_width=True)
-
-    with col_right2:
-        st.markdown("#### Least song overlap (lowest Jaccard)")
-        top_jaccard_low = pairs.nsmallest(10, 'Jaccard_Similarity_Songs')[['Other_Name', 'Jaccard_Similarity_Songs', 'Music_Distance', 'SCI_Score_normalized']]
-        top_jaccard_low.columns = ['Country', 'Jaccard ↓', 'Music Distance', 'SCI']
-        top_jaccard_low = top_jaccard_low.reset_index(drop=True)
-        top_jaccard_low.index += 1
-        st.dataframe(top_jaccard_low.style.format({'Jaccard ↓': '{:.4f}', 'Music Distance': '{:.4f}', 'SCI': '{:.3f}'}), use_container_width=True)
-
-    st.divider()
-    
-    col_sci_left, col_sci_right = st.columns(2)
-
-    with col_sci_left:
-        st.markdown("#### 👥 Most socially connected (highest SCI)")
-        top_sci = pairs.nlargest(10, 'SCI_Score_normalized')[['Other_Name', 'SCI_Score_normalized', 'Music_Distance', 'Jaccard_Similarity_Songs']]
-        top_sci.columns = ['Country', 'SCI ↑', 'Music Distance', 'Jaccard']
-        top_sci = top_sci.reset_index(drop=True)
-        top_sci.index += 1
-        st.dataframe(top_sci.style.format({'SCI ↑': '{:.3f}', 'Music Distance': '{:.4f}', 'Jaccard': '{:.4f}'}), use_container_width=True)
-
-    with col_sci_right:
-        st.markdown("#### Least socially connected (lowest SCI)")
-        bot_sci = pairs.nsmallest(10, 'SCI_Score_normalized')[['Other_Name', 'SCI_Score_normalized', 'Music_Distance', 'Jaccard_Similarity_Songs']]
-        bot_sci.columns = ['Country', 'SCI ↓', 'Music Distance', 'Jaccard']
-        bot_sci = bot_sci.reset_index(drop=True)
-        bot_sci.index += 1
-        st.dataframe(bot_sci.style.format({'SCI ↓': '{:.3f}', 'Music Distance': '{:.4f}', 'Jaccard': '{:.4f}'}), use_container_width=True)
+        st.markdown(f"#### {right_label}")
+        bot_df = worst[display_cols].copy()
+        bot_df.columns = col_labels
+        bot_df = bot_df.reset_index(drop=True)
+        bot_df.index += 1
+        st.dataframe(bot_df.style.format({k: '{:.4f}' for k in col_labels[1:]}), use_container_width=True)
 
     # --- ENHANCED MAP SECTION WITH TOGGLE ---
     st.markdown(f"#### 🗺️ Map Explorer: {COUNTRY_NAMES.get(selected_code, selected_code)}")
     
     map_mode = st.radio(
         "Highlight top 10 countries by:",
-        ["Music Mood (Lowest Music Distance)", "Song Overlap (Jaccard Similarity)", "Social Connectedness (SCI)"],
+        ["🎶 Music vibe (Music Distance)", "🔀 Shared songs (Jaccard Similarity)", "👥 Social connection (SCI)"],
         horizontal=True
     )
 
@@ -292,7 +295,7 @@ with tab2:
         countrycolor="white",
         showland=True,
         landcolor="#E5E5E5", 
-        coastlinecolor="white"
+        coastlinecolor="white",
     )
 
     fig_highlight.update_layout(
@@ -304,11 +307,12 @@ with tab2:
     st.plotly_chart(fig_highlight, use_container_width=True)
 
     # Scatter: all pairs for this country
+    pairs['Other_Name_Full'] = pairs['Other'].map(COUNTRY_NAMES).fillna(pairs['Other'])
+
     col_s1, col_s2 = st.columns(2)
 
     with col_s1:
-        st.markdown("#### 👥 SCI vs 🎶 Music Distance")
-        pairs['Other_Name_Full'] = pairs['Other'].map(COUNTRY_NAMES).fillna(pairs['Other'])
+        st.markdown("##### How similar is your chosen countrie's music vibe to other countries?")
         fig_scatter = px.scatter(
             pairs,
             x='SCI_Score_normalized',
@@ -327,7 +331,7 @@ with tab2:
         st.caption("Other countries that are more similar to the chosen country in the music vibe are the ones closer to the bottom (lower music distance - more similar music vibe), and more socially connected the more right they are (higher SCI - more socially connected)")
 
     with col_s2:
-        st.markdown("#### 👥SCI vs 🔀 Jaccard Similarity")
+        st.markdown("##### How many of the same songs does your chosen country share with other countries?")
         fig_scatter2 = px.scatter(
             pairs,
             x='SCI_Score_normalized',
@@ -348,12 +352,13 @@ with tab2:
 # TAB 3 — CORRELATIONS
 # ══════════════════════════════════════════════════════════════════════════════
 with tab3:
-    st.subheader("Global correlations: SCI, Economics & Music")
+    st.subheader("What actually predicts similar music taste?")
+    st.markdown("Below you can see whether countries that are more socially connected (more Facebook friendships) also end up listening to the same songs - and whether being richer or poorer changes the mood of the music people prefer.")
 
     col1, col2 = st.columns(2)
 
     with col1:
-        st.markdown("#### 👥 SCI vs 🎶 Music Distance (all 2,415 pairs)")
+        st.markdown("#### Do socially connected countries listen to music with a similar vibe?")
         fig1 = px.scatter(
             df, x='SCI_Score_normalized', y='Music_Distance',
             opacity=0.4,
@@ -363,10 +368,10 @@ with tab3:
         )
         fig1.update_layout(height=380)
         st.plotly_chart(fig1, use_container_width=True)
-        st.caption("r = -0.33: stronger social ties → more similar music, weak/moderate negative relation, meaning that the more socially related countries are, the more similar music they listen to")
+        st.caption("Countries with stronger Facebook ties tend to have a more similar overall music vibe (valence, energy, danceability). The trend is real but not overwhelming - social connection is one factor among many. r = -0.33")
 
     with col2:
-        st.markdown("#### 👥 SCI vs 🔀 Jaccard Similarity (all 2,415 pairs)")
+        st.markdown("#### Do socially connected countries share the same specific songs?")
         fig2 = px.scatter(
             df, x='SCI_Score_normalized', y='Jaccard_Similarity_Songs',
             opacity=0.4,
@@ -376,10 +381,10 @@ with tab3:
         )
         fig2.update_layout(height=380)
         st.plotly_chart(fig2, use_container_width=True)
-        st.caption("r = 0.54: stronger social ties → more songs in common - moderate positive relation, meaning that the more socially related countries are, the more similar music they listen to")
+        st.caption("This is the clearest finding: socially connected countries are much more likely to share the same viral hits in their top 50. Social media spreads specific songs across borders far more effectively than it shapes overall musical mood. r = 0.54")
 
     st.divider()
-    st.markdown("#### 💸 Financial Stress vs 🎸 Music Mood (70 countries)")
+    st.markdown("#### Does economic pressure change the kind of music a country listens to?")
     fig3 = px.scatter(
         country_df, x='Financial_Stress', y='Music_Mood',
         hover_name='Name', trendline='ols',
@@ -388,6 +393,6 @@ with tab3:
     )
     fig3.update_layout(height=400)
     st.plotly_chart(fig3, use_container_width=True)
-    st.caption("r = 0.24: very weak positive relationship, based on that we can say that financial stress is a little more consistent with the mood-regulation theory, but it is not enough to claim any of the individual psychological theories were supported at national level.")
+    st.caption("Financial stress has almost no consistent effect on a country's music mood. Countries under severe economic pressure don't reliably prefer sadder or happier music — local culture, history, and language seem to matter far more. r = 0.24")
 st.divider()
 st.caption("Data: Facebook SCI (Meta AI) · Spotify Top 50 (Kaggle) · Cost of Living (Numbeo) | Technical Communication - Maja Rzeszotarska")
