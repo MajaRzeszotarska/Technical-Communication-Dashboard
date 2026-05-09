@@ -66,7 +66,7 @@ def get_pairs_for_country(code):
 
 # ─── HEADER ───────────────────────────────────────────────────────────────────
 st.title("🎵 Do socially connected countries listen to the same music?")
-st.markdown("Social media connects people across the globe, but does that mean we all end up listening to the same music? Does countries' wealth influence what people listen to? Explore how social ties and economic conditions shape what 70 countries stream on Spotify - and what that reveals about culture, identity, and the global music scene.")
+st.markdown("Social media connects people across the globe, but does that mean we all end up listening to the same music? Does countries' wealth influence what people listen to? Explore how social ties and economic conditions shape what 70 countries stream on Spotify, and what that reveals about culture, identity, and the global music scene.")
 with st.expander("📖 What do the metrics mean?"):
     st.markdown("**🎶 Music Distance**\nsays how much the vibe of music differs (based on energy, happiness, and danceability). **Lower = more similar music.**")
     st.markdown("**🔀 Jaccard Similarity**\nis the number of songs two countries have in common in their Top 50 lists (in %). **Higher = more songs in common.**")
@@ -349,6 +349,7 @@ with tab2:
             hover_name='Other_Name_Full',
             color='Music_Distance', # Kolor pasuje do osi Y
             color_continuous_scale='Purples_r',
+            range_color=[pairs['Music_Distance'].min(), pairs['Music_Distance'].max() + 0.1],
             labels={
                 'SCI_Score_normalized': 'Social Connection Strength',
                 'Music_Distance': 'Music vibe similarity',
@@ -356,12 +357,22 @@ with tab2:
             title=f"Music vibe similarity: {COUNTRY_NAMES.get(selected_code, selected_code)}"
         )
         fig_scatter.update_layout(height=400)
+        fig_scatter.update_layout(
+            height=400,
+            hovermode="x",
+            coloraxis_colorbar=dict(
+                tickvals=[0, 0.1, 0.2, 0.3],
+                ticktext=["0", "0.1", "0.2", "0.3"]
+            )
+        )
         st.plotly_chart(fig_scatter, use_container_width=True)
-        st.caption("""
-        • dots closer to the **bottom** = countries with more similar **music vibe**<br>
-        • dots closer to the **right** = countries more **socially connected**<br>
-        • **best match** = dot in the **bottom right** corner
-        """.replace('\n', ''), unsafe_allow_html=True)                                                                                                                                                                  
+        st.markdown("""
+        <div style="font-size: 16px; color: black; line-height: 1.6;">
+        • dots closer to the <b>bottom</b> = countries with more similar <b>music vibe</b><br>
+        • dots closer to the <b>right</b> = countries more <b>socially connected</b><br>
+        • <b>best match</b> = dot in the <b>bottom right</b> corner
+        </div>
+        """, unsafe_allow_html=True)                                                                                                                                                                  
 
     with col_s2: 
         st.markdown("##### How many top 50 songs does your chosen country share with other countries?")
@@ -373,6 +384,7 @@ with tab2:
             hover_name='Other_Name_Full',
             color='Jaccard_Similarity_Songs', # Kolor pasuje do osi Y
             color_continuous_scale='Blues',
+            range_color=[-0.1, pairs['Jaccard_Similarity_Songs'].max()],
             labels={
                 'SCI_Score_normalized': 'Social Connection Strength',
                 'Jaccard_Similarity_Songs': '% of Shared Songs',
@@ -380,23 +392,64 @@ with tab2:
             title=f"% of Shared Songs: {COUNTRY_NAMES.get(selected_code, selected_code)}"
         )
         fig_scatter2.update_layout(height=400)
+        fig_scatter2.update_layout(
+            height=400,
+            hovermode="x",
+            coloraxis_colorbar=dict(
+                tickvals=[0, 0.05, 0.1, 0.15],
+                ticktext=["0%", "5%", "10%", "15%"] # Dodałem %, żeby było czytelniej
+            )
+        )
         st.plotly_chart(fig_scatter2, use_container_width=True)
-        st.caption("""
-        • dots closer to the **top** = countries with more **songs in common**<br>
-        • dots closer to the **right** = countries more **socially connected**<br>
-        • **best match** = dot in the **top right** corner
-        """.replace('\n', ''), unsafe_allow_html=True)                                                                                                              
+        st.markdown("""
+        <div style="font-size: 16px; color: black; line-height: 1.6;">
+        • dots closer to the <b>top</b> = countries with more <b>songs in common</b><br>
+        • dots closer to the <b>right</b> = countries more <b>socially connected</b><br>
+        • <b>best match</b> = dot in the <b>top right</b> corner
+        </div>
+        """, unsafe_allow_html=True)                                                                                                              
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 3 — CORRELATIONS
 # ══════════════════════════════════════════════════════════════════════════════
 with tab3:
     st.subheader("📊 What actually drives music similarity between countries?")
-    st.markdown(
-        "Two competing ideas: maybe countries listen to similar music because they're **socially connected** — "
-        "sharing songs through social media. Or maybe it's about **money** — richer or poorer countries develop "
-        "different musical tastes. Let's see what the data actually says."
-    )
-    st.info("Each dot on the charts below represents a country pair (purple and blue plot) or one country (red plot). Hover over dots to see which countries they are.")
+    st.markdown("""
+    <div style="font-size: 16px; color: black; line-height: 1.6;">
+        Two competing ideas: maybe countries listen to similar music because they're <b>socially connected</b> – 
+        sharing songs through social media. Or maybe it's about <b>money</b> – richer or poorer countries develop 
+        different musical tastes. Let's see what the data actually says.
+        <br>
+        • <b>Each dot</b> on the charts below represents a country pair (purple and blue plots) or a single country (red plot).<br>
+        • <b>Hover over dots</b> to see specific country names or pairs they represent.<br>
+        • <b>Hover over the line (trendline)</b> to see detailed statistics explained below. <i>Note: details are most visible when hovering near data points.</i><br>
+        • <b>To zoom in</b>, click and drag your cursor over a specific area. <b>Double-click</b> anywhere on the graph to reset the view.
+    </div>
+    <div style="margin-bottom: 30px;"></div>
+    """, unsafe_allow_html=True)
+
+    with st.expander("🤓 How to read the statistics? (Correlation, r-value and trendline)"):
+        st.markdown("""
+        **What is 'r' (Correlation Coefficient)?**  
+        It measures how much two things move together. For example, if stress in a country grows, so does the energy of the music - people listen to more energetic music. It does not have to mean that one influences the other though.
+        
+        *   **r = 1.0**: Perfect match (when one goes up, the other goes up exactly the same).
+        *   **r = 0**: No connection at all (complete chaos).
+        *   **r = -1.0**: Perfect opposite (when one goes up, the other goes down exactly opposite).
+
+        **The 3 Key Findings:**
+        1.  **Shared Hits (r = 0.54) → Strong Connection:** This is the strongest result. Social media and internet friendships are incredibly effective at spreading *specific* songs (the same top 50 hits) across borders.
+        2.  **Music Vibe (r = -0.33) → Moderate Connection:** Social ties do influence the *general mood* of music people like, but less than specific hits. It's a piece of the puzzle, but not the whole story.
+        3.  **Economic Pressure (r = 0.24) → Weak/No Connection:** Surprisingly, wealth doesn't dictate music taste. Whether a country is rich or poor has almost no impact on the 'mood' of its music. Local culture matters more than money.
+                    
+        **What do those technical terms in the pop-up when hovering over the graph (trend) line mean?**
+
+        *   **OLS Trendline (The Line):** This is the 'best-fit' line. It shows the general direction of the data. If it goes up, the relationship is positive; if it goes down, it's negative.
+        *   **R-Squared ($R^2$):** This tells us how much of the variation is actually explained by the trend. 
+            *   **$R^2 = 0.29$ (Shared Songs):** High. Social ties explain nearly 30% of why countries share the same hits.
+            *   **$R^2 = 0.05$ (Economic Pressure):** Very low. It confirms that money has almost nothing to do with music mood.
+            *   **$R^2 = 0.11$ (Music Vibe):** Moderate-Low. Social ties explain about 11% of the differences in musical mood between countries."
+        *   **The Equation (e.g., $y = ax + b$):** This is just the mathematical formula for the line. For every step you move right on the 'Social' (x - horizontal) axis, it tells you exactly how much the 'Music' value is expected to change (y - vertical axis).
+        """)
 
     col1, col2 = st.columns(2)
 
@@ -412,7 +465,7 @@ with tab3:
         )
         fig1.update_layout(height=380)
         st.plotly_chart(fig1, use_container_width=True)
-        st.caption("There's a real pattern here: countries with stronger Facebook friendships do tend to have a more similar music vibe. But the dots are quite spread out - social connection is only one piece of the puzzle, not the whole story. (r = −0.33)")
+        st.caption("There's a real pattern here: countries with **stronger Facebook friendships** do tend to have a **more similar music vibe**. But the dots are quite spread out - social connection is only one piece of the puzzle, not the whole story. r = −0.33")
 
     with col2:
         st.markdown("#### Do socially connected countries share the same specific songs?")
@@ -426,8 +479,7 @@ with tab3:
         )
         fig2.update_layout(height=380)
         st.plotly_chart(fig2, use_container_width=True)
-        st.caption("This is the clearest finding (dots are more dense around the line): socially connected countries are much more likely to share the same viral hits in their top 50. Social media spreads specific songs across borders far more effectively than it shapes overall musical mood. r = 0.54")
-
+        st.caption("This is the **clearest finding** (dots are more dense around the line): **socially connected countries** are much more likely to **share the same viral hits in their top 50**. Social media spreads specific songs across borders far more effectively than it shapes overall musical mood. r = 0.54")
     st.divider()
     st.markdown("#### Does economic pressure change the kind of music a country listens to?")
     st.write(":grey[*Each dot = one country. Right = higher financial stress. Up = more uplifting music.*]")
@@ -439,7 +491,7 @@ with tab3:
     )
     fig3.update_layout(height=400)
     st.plotly_chart(fig3, use_container_width=True)
-    st.caption("Surprisingly, whether a country is rich or poor has almost no effect on the music mood people prefer. The dots are all over the place - no clear pattern. Local culture, language, and history appear to matter far more than economics when it comes to musical identity. (r = 0.24)")
+    st.caption("Surprisingly, **whether a country is rich or poor** has almost **no effect on the music mood** people prefer. The dots are all over the place - no clear pattern. Local culture, language, and history appear to matter far more than economics when it comes to musical identity. r = 0.24")
 
 st.divider()
 st.markdown("### 🎯 Key takeaways")
