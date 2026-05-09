@@ -131,7 +131,7 @@ with tab1:
     colorblind_mode = st.toggle("🎨 Colorblind-friendly mode", value=False)
 
     if colorblind_mode:
-        chosen_scale = "Viridis_r" if map_metric != "Financial_Stress" else "Viridis"
+        chosen_scale = "Viridis" if map_metric != "Financial_Stress" else "Viridis_r"
     else:
         chosen_scale = "RdYlGn" if map_metric != "Financial_Stress" else "RdYlGn_r"
 
