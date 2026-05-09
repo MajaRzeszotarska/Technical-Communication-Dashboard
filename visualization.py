@@ -65,25 +65,25 @@ def get_pairs_for_country(code):
     return pairs
 
 # ─── HEADER ───────────────────────────────────────────────────────────────────
-st.title("🎵 Do connected countries listen to the same music?")
-st.markdown("Explore how social ties and economic conditions shape what 70 countries stream on Spotify - and what that tells us about culture and the global music scene.")
+st.title("🎵 Do socially connected countries listen to the same music?")
+st.markdown("Social media connects people across the globe, but does that mean we all end up listening to the same music? Does countries' wealth influence what people listen to? Explore how social ties and economic conditions shape what 70 countries stream on Spotify - and what that reveals about culture, identity, and the global music scene.")
 with st.expander("📖 What do the metrics mean?"):
-    st.markdown("**🎶 Music Distance**\nsays how much the vibe of music differs (based on energy, happiness and danceability). **Lower = more similar music.**")
-    st.markdown("**🔀 Jaccard Similarity**\nis the number of top 50 songs shared between two countries. **Higher = more songs in common.**")
+    st.markdown("**🎶 Music Distance**\nsays how much the vibe of music differs (based on energy, happiness, and danceability). **Lower = more similar music.**")
+    st.markdown("**🔀 Jaccard Similarity**\nis the number of songs two countries have in common in their Top 50 lists (in %). **Higher = more songs in common.**")
     st.markdown("**👥 SCI (Social Connectedness)**\nsays how closely connected two countries are based on Facebook friendships. **Higher = more social ties.**")
     st.markdown("**🎸 Music Mood**\n says how energetic, positive and danceable music is. **Higher = more energetic/happy.**")
-    st.markdown("**😔 Mood-congruency theory**\nclaims that people listen to music matching their current emotional state. It assumes that in countries with **high financial stress**, people listen to more **melancholic and lower-energy music**.")
-    st.markdown("**✨ Mood-regulation theory**\nclaims that people listen to music to escape their mood. It assumes that in countries with **high financial stress**, people listen to more **energetic and uplifting music** to escape their problems and everyday stress.")
+    st.markdown("**😔 Mood-congruency theory**\nclaims that people listen to music matching their current emotional state - in countries with **high financial stress**, people listen to more **melancholic and lower-energy music**.")
+    st.markdown("**✨ Mood-regulation theory**\nclaims that people listen to music to escape their mood - in countries with **high financial stress**, people listen to more **energetic and uplifting music** to escape their problems and everyday stress.")
 
 with st.expander("🌍 About the data & countries"):
     st.markdown("""
     **What data is this based on?**
     This dashboard uses three datasets combined into one:
-    - **Spotify Top 50** (via Kaggle): the top 50 most-streamed songs per country, with audio features like valence (happiness), energy, and danceability. Data is averaged per country across multiple snapshot dates.
-    - **Facebook Social Connectedness Index** (Meta AI Research): measures how many Facebook friendships exist between countries, normalized on a log scale so patterns are visible.
+    - **Spotify Top 50** (via Kaggle): the top 50 most-streamed songs per country, with audio features like valence (happiness), energy, and danceability. Data is averaged per country across multiple snapshot dates, from 2023-10-18 to 2025-06-11.
+    - **Facebook Social Connectedness Index** (Meta AI Research): measures how many Facebook friendships exist between countries, presented in a different scale so that patterns are visible.
     - **Numbeo Cost of Living**: cost of living, rent, groceries, and local purchasing power per country.
     
-    **70 countries** are included across 6 continents: Argentina, Australia, Austria, Belarus, Belgium, Bolivia, Brazil, Bulgaria, Canada, Chile, Colombia, Costa Rica, Czech Republic, Denmark, Dominican Republic, Ecuador, Egypt, El Salvador, Estonia, Finland, France, Germany, Greece, Guatemala, Honduras, Hungary, Iceland, India, Indonesia, Ireland, Israel, Italy, Japan, Kazakhstan, Latvia, Lithuania, Luxembourg, Malaysia, Mexico, Morocco, Netherlands, New Zealand, Nigeria, Norway, Pakistan, Panama, Paraguay, Peru, Philippines, Poland, Portugal, Romania, Saudi Arabia, Singapore, Slovakia, South Africa, South Korea, Spain, Sweden, Switzerland, Taiwan, Thailand, Turkey, Ukraine, United Arab Emirates, United Kingdom, United States, Uruguay, Venezuela, Vietnam.
+    **70 countries** are included across 6 continents (Asia, Africa, North America, South America, Europe and Australia), as shown on the world map on "World Map" tab. The detailed list is: Argentina, Australia, Austria, Belarus, Belgium, Bolivia, Brazil, Bulgaria, Canada, Chile, Colombia, Costa Rica, Czech Republic, Denmark, Dominican Republic, Ecuador, Egypt, El Salvador, Estonia, Finland, France, Germany, Greece, Guatemala, Honduras, Hungary, Iceland, India, Indonesia, Ireland, Israel, Italy, Japan, Kazakhstan, Latvia, Lithuania, Luxembourg, Malaysia, Mexico, Morocco, Netherlands, New Zealand, Nigeria, Norway, Pakistan, Panama, Paraguay, Peru, Philippines, Poland, Portugal, Romania, Saudi Arabia, Singapore, Slovakia, South Africa, South Korea, Spain, Sweden, Switzerland, Taiwan, Thailand, Turkey, Ukraine, United Arab Emirates, United Kingdom, United States, Uruguay, Venezuela, Vietnam.
     
     **2,415 country pairs** were created from these 70 countries to compare music similarity and social ties between every possible combination.
     """)
@@ -95,23 +95,23 @@ if "active_tab" not in st.session_state:
     st.session_state.active_tab = "🔍 Country Explorer" # Ustaw domyślną na tę, na której pracujesz
 
 # To sprawi, że Streamlit nie będzie "skakał" do pierwszej zakładki
-tab1, tab2, tab3 = st.tabs(["🗺️ World Map", "🔍 Country Explorer", "📊 Correlations"])
+tab1, tab2, tab3 = st.tabs(["🗺️ World Map", "🔍 Country Explorer", "📊 Patterns"])
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 1 — WORLD MAP
 # ══════════════════════════════════════════════════════════════════════════════
 with tab1:
-    st.subheader("Country-level music & economic profiles")
+    st.subheader("Explore the musical & economic values of each country")
     map_metric = st.selectbox(
         "Color countries by:",
         ["Music_Mood", "Financial_Stress", "Valence", "Energy", "Danceability", "Cost_of_Living", "Purchasing_Power"],
         format_func=lambda x: {
-            "Music_Mood": "🎸 Music Mood (higher = more energetic/happy)",
-            "Financial_Stress": "💸 Financial Stress (higher = more economic pressure)",
-            "Valence": "😊 Valence (positivity of music)",
-            "Energy": "⚡ Energy (intensity of music)",
-            "Danceability": "💃 Danceability",
-            "Cost_of_Living": "🏠 Cost of Living Index",
-            "Purchasing_Power": "💰 Local Purchasing Power"
+            "Music_Mood": "🎸 Music Mood (higher = more uplifting, positive, energetic music)",
+            "Financial_Stress": "💸 Financial Stress (higher = more struggle to provide basic needs)",
+            "Valence": "😊 Valence (higher = happier and more positive music)",
+            "Energy": "⚡ Energy (higher = more intense and active music)",
+            "Danceability": "💃 Danceability (higher = tempo and rythm better for dancing)",
+            "Cost_of_Living": "🏠 Cost of Living (higher = more expensive everyday expenses)",
+            "Purchasing_Power": "💰 Local Purchasing Power (higher = more wealth to buy goods and services)"
         }[x]
     )
 
@@ -128,6 +128,13 @@ with tab1:
     # Ensure Code3 is available BEFORE creating the map
     country_df['Code3'] = country_df['Code'].apply(to_iso3)
 
+    colorblind_mode = st.toggle("🎨 Colorblind-friendly mode", value=False)
+
+    if colorblind_mode:
+        chosen_scale = "Viridis_r" if map_metric != "Financial_Stress" else "Viridis"
+    else:
+        chosen_scale = "RdYlGn" if map_metric != "Financial_Stress" else "RdYlGn_r"
+
     fig_map = px.choropleth(
         country_df,
         locations="Code3",
@@ -140,9 +147,11 @@ with tab1:
             "Financial_Stress": ":.2f",
             "Valence": ":.3f",
             "Energy": ":.3f",
-            "Danceability": ":.3f"
+            "Danceability": ":.3f",
+            "Cost_of_Living": ":.1f",
+            "Purchasing_Power": ":.1f"
         },
-        color_continuous_scale="RdYlGn" if map_metric != "Financial_Stress" else "RdYlGn_r",
+        color_continuous_scale=chosen_scale,
         labels={map_metric: color_labels[map_metric]},
         title=f"World Map: {color_labels[map_metric]}"
     )
@@ -167,7 +176,7 @@ with tab1:
 # TAB 2 — COUNTRY EXPLORER
 # ══════════════════════════════════════════════════════════════════════════════
 with tab2:
-    st.subheader("Explore a specific country")
+    st.subheader("Explore a specific country - dive into its local vibes & global connections")
 
     country_options = sorted(country_df['Code'].tolist(), key=lambda x: COUNTRY_NAMES.get(x, x))
     selected_code = st.selectbox(
@@ -183,11 +192,30 @@ with tab2:
     # Country profile
     st.markdown(f"### 🌍 {COUNTRY_NAMES.get(selected_code, selected_code)}")
     c1, c2, c3, c4, c5 = st.columns(5)
-    c1.metric("🎸 Music Mood", f"{selected_country['Music_Mood']:.3f}")
-    c2.metric("😊 Valence", f"{selected_country['Valence']:.3f}")
-    c3.metric("⚡ Energy", f"{selected_country['Energy']:.3f}")
-    c4.metric("💸 Financial Stress", f"{selected_country['Financial_Stress']:.2f}")
-    c5.metric("💰 Purchasing Power", f"{selected_country['Purchasing_Power']:.1f}")
+    # c1 - Music Mood
+    with c1:
+        st.metric("🎸 Music Mood", f"{selected_country['Music_Mood']:.3f}")
+        st.caption("higher = more uplifting, positive, energetic")
+
+    # c2 - Valence
+    with c2:
+        st.metric("😊 Valence", f"{selected_country['Valence']:.3f}")
+        st.caption("higher = happier and more positive music")
+
+    # c3 - Energy
+    with c3:
+        st.metric("⚡ Energy", f"{selected_country['Energy']:.3f}")
+        st.caption("higher = more intense and active music")
+
+    # c4 - Financial Stress
+    with c4:
+        st.metric("💸 Financial Stress", f"{selected_country['Financial_Stress']:.2f}")
+        st.caption("higher = more struggle to provide basic needs")
+
+    # c5 - Purchasing Power
+    with c5:
+        st.metric("💰 Purchasing Power", f"{selected_country['Purchasing_Power']:.1f}")
+        st.caption("higher = more wealth to buy goods and services")
 
     st.divider()
 
@@ -211,7 +239,7 @@ with tab2:
         sort_col = 'Jaccard_Similarity_Songs'
         display_cols = ['Other_Name', 'Jaccard_Similarity_Songs', 'Music_Distance', 'SCI_Score_normalized']
         col_labels = ['Country', 'Jaccard', 'Music Distance', 'SCI']
-        left_label = 'Most song overlap'
+        left_label = 'Most top 50 songs in common'
         right_label = 'Least song overlap'
         best = pairs.nlargest(10, sort_col)
         worst = pairs.nsmallest(10, sort_col)
@@ -244,7 +272,7 @@ with tab2:
     st.markdown(f"#### 🗺️ Map Explorer: {COUNTRY_NAMES.get(selected_code, selected_code)}")
     
     map_mode = st.radio(
-        "Highlight top 10 countries by:",
+        "Color countries by:",
         ["🎶 Music vibe (Music Distance)", "🔀 Shared songs (Jaccard Similarity)", "👥 Social connection (SCI)"],
         horizontal=True
     )
@@ -312,7 +340,8 @@ with tab2:
     col_s1, col_s2 = st.columns(2)
 
     with col_s1:
-        st.markdown("##### How similar is your chosen countrie's music vibe to other countries?")
+        st.markdown("##### How similar is your chosen country's music vibe to other countries?")
+        st.write(":grey[*Lower score = Higher similarity*]") # Styled muted/italic text
         fig_scatter = px.scatter(
             pairs,
             x='SCI_Score_normalized',
@@ -328,10 +357,15 @@ with tab2:
         )
         fig_scatter.update_layout(height=400)
         st.plotly_chart(fig_scatter, use_container_width=True)
-        st.caption("Other countries that are more similar to the chosen country in the music vibe are the ones closer to the bottom (lower music distance - more similar music vibe), and more socially connected the more right they are (higher SCI - more socially connected)")
+        st.caption("""
+        • dots closer to the **bottom** = countries with more similar **music vibe**<br>
+        • dots closer to the **right** = countries more **socially connected**<br>
+        • **best match** = dot in the **bottom right** corner
+        """.replace('\n', ''), unsafe_allow_html=True)                                                                                                                                                                  
 
-    with col_s2:
-        st.markdown("##### How many of the same songs does your chosen country share with other countries?")
+    with col_s2: 
+        st.markdown("##### How many top 50 songs does your chosen country share with other countries?")
+        st.write(":grey[*Higher score = Higher similarity*]") # Styled muted/italic text
         fig_scatter2 = px.scatter(
             pairs,
             x='SCI_Score_normalized',
@@ -347,18 +381,28 @@ with tab2:
         )
         fig_scatter2.update_layout(height=400)
         st.plotly_chart(fig_scatter2, use_container_width=True)
-        st.caption("Other countries that are more similar to the chosen country in the Jaccard similarity are the ones closer to the top (higher Jaccard similarity - more \% of songs overlapping), and more socially connected the more right they are (higher SCI).")
+        st.caption("""
+        • dots closer to the **top** = countries with more **songs in common**<br>
+        • dots closer to the **right** = countries more **socially connected**<br>
+        • **best match** = dot in the **top right** corner
+        """.replace('\n', ''), unsafe_allow_html=True)                                                                                                              
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 3 — CORRELATIONS
 # ══════════════════════════════════════════════════════════════════════════════
 with tab3:
-    st.subheader("What actually predicts similar music taste?")
-    st.markdown("Below you can see whether countries that are more socially connected (more Facebook friendships) also end up listening to the same songs - and whether being richer or poorer changes the mood of the music people prefer.")
+    st.subheader("📊 What actually drives music similarity between countries?")
+    st.markdown(
+        "Two competing ideas: maybe countries listen to similar music because they're **socially connected** — "
+        "sharing songs through social media. Or maybe it's about **money** — richer or poorer countries develop "
+        "different musical tastes. Let's see what the data actually says."
+    )
+    st.info("Each dot on the charts below represents a country pair (purple and blue plot) or one country (red plot). Hover over dots to see which countries they are.")
 
     col1, col2 = st.columns(2)
 
     with col1:
         st.markdown("#### Do socially connected countries listen to music with a similar vibe?")
+        st.write(":grey[*Each dot = one country pair. Right = more connected. Down = more similar music vibe.*]")
         fig1 = px.scatter(
             df, x='SCI_Score_normalized', y='Music_Distance',
             opacity=0.4,
@@ -368,10 +412,11 @@ with tab3:
         )
         fig1.update_layout(height=380)
         st.plotly_chart(fig1, use_container_width=True)
-        st.caption("Countries with stronger Facebook ties tend to have a more similar overall music vibe (valence, energy, danceability). The trend is real but not overwhelming - social connection is one factor among many. r = -0.33")
+        st.caption("There's a real pattern here: countries with stronger Facebook friendships do tend to have a more similar music vibe. But the dots are quite spread out - social connection is only one piece of the puzzle, not the whole story. (r = −0.33)")
 
     with col2:
         st.markdown("#### Do socially connected countries share the same specific songs?")
+        st.write(":grey[*Each dot = one country pair. Right = more connected. Up = more songs in common.*]")
         fig2 = px.scatter(
             df, x='SCI_Score_normalized', y='Jaccard_Similarity_Songs',
             opacity=0.4,
@@ -381,10 +426,11 @@ with tab3:
         )
         fig2.update_layout(height=380)
         st.plotly_chart(fig2, use_container_width=True)
-        st.caption("This is the clearest finding: socially connected countries are much more likely to share the same viral hits in their top 50. Social media spreads specific songs across borders far more effectively than it shapes overall musical mood. r = 0.54")
+        st.caption("This is the clearest finding (dots are more dense around the line): socially connected countries are much more likely to share the same viral hits in their top 50. Social media spreads specific songs across borders far more effectively than it shapes overall musical mood. r = 0.54")
 
     st.divider()
     st.markdown("#### Does economic pressure change the kind of music a country listens to?")
+    st.write(":grey[*Each dot = one country. Right = higher financial stress. Up = more uplifting music.*]")
     fig3 = px.scatter(
         country_df, x='Financial_Stress', y='Music_Mood',
         hover_name='Name', trendline='ols',
@@ -393,6 +439,25 @@ with tab3:
     )
     fig3.update_layout(height=400)
     st.plotly_chart(fig3, use_container_width=True)
-    st.caption("Financial stress has almost no consistent effect on a country's music mood. Countries under severe economic pressure don't reliably prefer sadder or happier music — local culture, history, and language seem to matter far more. r = 0.24")
+    st.caption("Surprisingly, whether a country is rich or poor has almost no effect on the music mood people prefer. The dots are all over the place - no clear pattern. Local culture, language, and history appear to matter far more than economics when it comes to musical identity. (r = 0.24)")
+
+st.divider()
+st.markdown("### 🎯 Key takeaways")
+st.success(
+    "**1. Social connections shape which songs go viral across borders.**  \n"
+    "Countries with strong Facebook ties are far more likely to share the same specific hits - "
+    "social media is the engine behind global music trends."
+)
+st.warning(
+    "**2. Local musical identity survives.**  \n"
+    "Even highly connected countries don't always sound alike. The emotional vibe of a country's music - "
+    "whether it's upbeat, melancholic, or energetic - stays rooted in local culture."
+)
+st.info(
+    "**3. Money doesn't buy musical taste.**  \n"
+    "Whether a country is wealthy or struggling economically has almost no consistent effect on "
+    "what kind of music people prefer. Culture wins over economics."
+)
+
 st.divider()
 st.caption("Data: Facebook SCI (Meta AI) · Spotify Top 50 (Kaggle) · Cost of Living (Numbeo) | Technical Communication - Maja Rzeszotarska")
