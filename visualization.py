@@ -281,7 +281,7 @@ with tab2:
 
     if "Jaccard" in map_mode:
         metric_col = 'Jaccard_Similarity_Songs'
-        color_scale = 'Viridis' if colorblind_mode else 'Blues'
+        color_scale = 'Viridis_r' if colorblind_mode else 'Blues'
         hover_label = 'Jaccard Similarity'
     elif "SCI" in map_mode:
         metric_col = 'SCI_Score_normalized'
@@ -363,7 +363,7 @@ with tab2:
             y='Music_Distance',
             hover_name='Other_Name_Full',
             color='Music_Distance', # Kolor pasuje do osi Y
-            color_continuous_scale='Viridis' if colorblind_mode else 'Purples_r',
+            color_continuous_scale='Viridis_r' if colorblind_mode else 'Purples_r',
             range_color=[pairs['Music_Distance'].min(), pairs['Music_Distance'].max() + 0.1],
             labels={
                 'SCI_Score_normalized': 'Social Connection Strength',
