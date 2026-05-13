@@ -88,6 +88,8 @@ with st.expander("🌍 About the data & countries"):
     **2,415 country pairs** were created from these 70 countries to compare music similarity and social ties between every possible combination.
     """)
 
+colorblind_mode = st.toggle("🎨 Colorblind-friendly mode (all maps)", value=False)
+
 st.divider()
 # ─── TAB LAYOUT ───────────────────────────────────────────────────────────────
 # Użyj tego:
@@ -128,7 +130,7 @@ with tab1:
     # Ensure Code3 is available BEFORE creating the map
     country_df['Code3'] = country_df['Code'].apply(to_iso3)
 
-    colorblind_mode = st.toggle("🎨 Colorblind-friendly mode", value=False)
+    # colorblind_mode = st.toggle("🎨 Colorblind-friendly mode", value=False)
 
     if colorblind_mode:
         chosen_scale = "Viridis" if map_metric != "Financial_Stress" else "Viridis_r"
@@ -279,16 +281,29 @@ with tab2:
 
     if "Jaccard" in map_mode:
         metric_col = 'Jaccard_Similarity_Songs'
-        color_scale = 'Blues'  
+        color_scale = 'Viridis' if colorblind_mode else 'Blues'
         hover_label = 'Jaccard Similarity'
     elif "SCI" in map_mode:
         metric_col = 'SCI_Score_normalized'
-        color_scale = 'Mint'
+        color_scale = 'Viridis' if colorblind_mode else 'Mint'
         hover_label = 'Social Connectedness'
     else:
         metric_col = 'Music_Distance'
-        color_scale = 'Purples_r'
+        color_scale = 'Viridis' if colorblind_mode else 'Purples_r'
         hover_label = 'Music Distance'
+
+    # if "Jaccard" in map_mode:
+    #     metric_col = 'Jaccard_Similarity_Songs'
+    #     color_scale = 'Blues'  
+    #     hover_label = 'Jaccard Similarity'
+    # elif "SCI" in map_mode:
+    #     metric_col = 'SCI_Score_normalized'
+    #     color_scale = 'Mint'
+    #     hover_label = 'Social Connectedness'
+    # else:
+    #     metric_col = 'Music_Distance'
+    #     color_scale = 'Purples_r'
+    #     hover_label = 'Music Distance'
 
     map_df = country_df.copy()
     map_df = map_df.merge(
@@ -312,7 +327,7 @@ with tab2:
     fig_highlight.add_trace(go.Choropleth(
         locations=selected_row['Code3'],
         z=[1],
-        colorscale=[[0, '#e74c3c'], [1, '#e74c3c']],
+        colorscale=[[0, '#FF6600'], [1, '#FF6600']],
         showscale=False,
         hovertemplate=f"<b>{COUNTRY_NAMES.get(selected_code, selected_code)}</b><br>Selected<extra></extra>"
     ))
@@ -348,7 +363,7 @@ with tab2:
             y='Music_Distance',
             hover_name='Other_Name_Full',
             color='Music_Distance', # Kolor pasuje do osi Y
-            color_continuous_scale='Purples_r',
+            color_continuous_scale='Viridis' if colorblind_mode else 'Purples_r',
             range_color=[pairs['Music_Distance'].min(), pairs['Music_Distance'].max() + 0.1],
             labels={
                 'SCI_Score_normalized': 'Social Connection Strength',
@@ -367,7 +382,7 @@ with tab2:
         )
         st.plotly_chart(fig_scatter, use_container_width=True)
         st.markdown("""
-        <div style="font-size: 16px; color: black; line-height: 1.6;">
+        <div style="font-size: 16px; line-height: 1.6;">
         • dots closer to the <b>bottom</b> = countries with more similar <b>music vibe</b><br>
         • dots closer to the <b>right</b> = countries more <b>socially connected</b><br>
         • <b>best match</b> = dot in the <b>bottom right</b> corner
@@ -383,7 +398,7 @@ with tab2:
             y='Jaccard_Similarity_Songs',
             hover_name='Other_Name_Full',
             color='Jaccard_Similarity_Songs', # Kolor pasuje do osi Y
-            color_continuous_scale='Blues',
+            color_continuous_scale='Viridis' if colorblind_mode else 'Blues',
             range_color=[-0.1, pairs['Jaccard_Similarity_Songs'].max()],
             labels={
                 'SCI_Score_normalized': 'Social Connection Strength',
@@ -402,7 +417,7 @@ with tab2:
         )
         st.plotly_chart(fig_scatter2, use_container_width=True)
         st.markdown("""
-        <div style="font-size: 16px; color: black; line-height: 1.6;">
+        <div style="font-size: 16px; line-height: 1.6;">
         • dots closer to the <b>top</b> = countries with more <b>songs in common</b><br>
         • dots closer to the <b>right</b> = countries more <b>socially connected</b><br>
         • <b>best match</b> = dot in the <b>top right</b> corner
@@ -414,7 +429,7 @@ with tab2:
 with tab3:
     st.subheader("📊 What actually drives music similarity between countries?")
     st.markdown("""
-    <div style="font-size: 16px; color: black; line-height: 1.6;">
+    <div style="font-size: 16px; line-height: 1.6;">
         Two competing ideas: maybe countries listen to similar music because they're <b>socially connected</b> – 
         sharing songs through social media. Or maybe it's about <b>money</b> – richer or poorer countries develop 
         different musical tastes. Let's see what the data actually says.
@@ -461,7 +476,7 @@ with tab3:
             opacity=0.4,
             trendline='ols',
             labels={'SCI_Score_normalized': 'SCI Normalized', 'Music_Distance': 'Music Distance'},
-            color_discrete_sequence=['#9b59b6']
+            color_discrete_sequence=['#009E73'] if colorblind_mode else ['#9b59b6']
         )
         fig1.update_layout(height=380)
         st.plotly_chart(fig1, use_container_width=True)
@@ -475,7 +490,7 @@ with tab3:
             opacity=0.4,
             trendline='ols',
             labels={'SCI_Score_normalized': 'SCI Normalized', 'Jaccard_Similarity_Songs': 'Jaccard Songs'},
-            color_discrete_sequence=['#3498db']
+            color_discrete_sequence=['#0077BB'] if colorblind_mode else ['#3498db']
         )
         fig2.update_layout(height=380)
         st.plotly_chart(fig2, use_container_width=True)
@@ -487,7 +502,7 @@ with tab3:
         country_df, x='Financial_Stress', y='Music_Mood',
         hover_name='Name', trendline='ols',
         labels={'Financial_Stress': 'Financial Stress', 'Music_Mood': 'Music Mood'},
-        color_discrete_sequence=['#e74c3c']
+        color_discrete_sequence=['#CC6677'] if colorblind_mode else ['#e74c3c']
     )
     fig3.update_layout(height=400)
     st.plotly_chart(fig3, use_container_width=True)
