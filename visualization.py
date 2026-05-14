@@ -43,9 +43,9 @@ def load_data():
         'Average_Valence': 'Valence',
         'Average_Energy': 'Energy',
         'Average_Danceability': 'Danceability',
-        'Financial Stress': 'Financial_Stress',
-        'Cost of Living': 'Cost_of_Living',
-        'Local Purchasing Power': 'Purchasing_Power',
+        'Financial Stress normalized': 'Financial_Stress',
+        'Cost of Living Plus Rent Index Normalized': 'Cost_of_Living',
+        'Local Purchasing Power Index normalized': 'Purchasing_Power',
         'Music Mood': 'Music_Mood'
     })
     
