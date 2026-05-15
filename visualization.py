@@ -112,7 +112,7 @@ with tab1:
             "Valence": "😊 Valence (higher = happier and more positive music)",
             "Energy": "⚡ Energy (higher = more intense and active music)",
             "Danceability": "💃 Danceability (higher = tempo and rythm better for dancing)",
-            "Cost_of_Living": "🏠 Cost of Living (higher = more expensive everyday expenses)",
+            "Cost_of_Living": "🏠 Cost of Living plus rent (higher = more expensive everyday expenses)",
             "Purchasing_Power": "💰 Local Purchasing Power (higher = more wealth to buy goods and services)"
         }[x]
     )
